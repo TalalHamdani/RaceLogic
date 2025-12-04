@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <algorithm>
 #include "models/driver.hpp"
 #include "models/car.hpp"
 #include "models/track.hpp"

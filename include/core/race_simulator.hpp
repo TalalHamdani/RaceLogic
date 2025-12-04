@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <random>
+#include <algorithm>
 #include "models/driver.hpp"
 #include "models/car.hpp"
 #include "models/track.hpp"
