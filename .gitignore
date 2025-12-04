@@ -1,0 +1,37 @@
+# Build directories
+build/
+bin/
+lib/
+cmake-build-*/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Compiled Object files
+*.o
+*.obj
+
+# Executables
+*.exe
+*.out
+*.app
+RaceLogic
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+
+# External dependencies
+external/imgui/
+
+# OS files
+.DS_Store
+Thumbs.db
