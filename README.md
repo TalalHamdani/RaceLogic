@@ -1,19 +1,19 @@
-# RaceLogic v0.1 - F1 Simulation Engine
+# RaceLogic v0.1 - F1 Driver Ranking System
 
-RaceLogic is a high-performance, data-driven Formula 1 race simulation engine built in C++. It simulates race dynamics, tyre degradation, pit strategies, and driver performance using a custom-built physics and scoring engine.
+RaceLogic is a high-performance, data-driven Formula 1 ranking system built in C++. It evaluates race dynamics, tyre degradation, pit strategies, and driver performance to calculate comprehensive driver ratings using a custom-built scoring engine.
 
 The project features a **web-based dashboard** to visualize race results and season standings in real-time.
 
 ## 🚀 Key Features
 
 ### 🛠️ Custom Data Structures (No STL)
-To demonstrate deep understanding of memory management and algorithm optimization, the core engine relies entirely on custom-implemented data structures instead of the C++ Standard Template Library (STL):
+To demonstrate deep understanding of memory management and algorithm optimization, the core system relies entirely on custom-implemented data structures instead of the C++ Standard Template Library (STL):
 - **`Vector<T>`**: Dynamic array implementation with manual memory management.
 - **`LinkedList<T>`**: Doubly linked list for efficient insertion/deletion.
 - **`BSTMap<K, V>`**: Binary Search Tree based map for O(log n) lookups.
 - **`PriorityQueue<T>`**: Min-Heap implementation for efficient Dijkstra's algorithm execution.
 
-### 🏎️ Simulation Engine
+### 🏆 Ranking Engine
 - **Tyre Degradation Model**: Non-linear degradation logic based on tyre compound (Soft/Medium/Hard) and stint length.
 - **Scoring System**: Complex driver scoring based on speed efficiency, consistency, wet weather skill, and overtakes.
 - **Race Graph**: Graph-based track representation using **Dijkstra’s Algorithm** (via custom Priority Queue) to calculate ideal racing lines and sectoral times.
