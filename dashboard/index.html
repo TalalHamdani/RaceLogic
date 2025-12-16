@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RaceLogic Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <!-- Load Data -->
+    <script src="data.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <span class="logo-icon">🏎️</span> RaceLogic
+            </div>
+
+            <nav class="nav-menu">
+                <div class="nav-section">
+                    <h3>Live Timing</h3>
+                    <a href="#" class="nav-item active" data-view="dashboard">Dashboard</a>
+                    <a href="#" class="nav-item" data-view="standings">Standings</a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-bar">
+                <div class="race-info">
+                    <div class="flag">🏁</div>
+                    <div class="race-details">
+                        <h1 id="race-name">Season Overview</h1>
+                    </div>
+                </div>
+
+                <div class="weather-widget">
+                    <div class="weather-item">
+                        <span class="icon">🌡️</span>
+                        <span class="value" id="race-temp">26°C</span>
+                    </div>
+                    <div class="weather-item">
+                        <span class="icon">🌧️</span>
+                        <span class="value" id="race-weather">Sunny</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard View (Race Results) -->
+            <div id="view-dashboard" class="content-view active">
+                <div class="controls">
+                    <button id="prev-race" class="btn-control">◀ Prev</button>
+                    <span id="current-race-display">Round 1</span>
+                    <button id="next-race" class="btn-control">Next ▶</button>
+                </div>
+
+                <div class="table-container">
+                    <table class="timing-table">
+                        <thead>
+                            <tr>
+                                <th>Pos</th>
+                                <th>Driver</th>
+                                <th>Gap</th>
+                                <th>Time</th>
+                                <th>Pits</th>
+                                <th>Tyre Deg</th>
+                                <th>Overtakes</th>
+                                <th>Pts</th>
+                            </tr>
+                        </thead>
+                        <tbody id="race-table-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Standings View -->
+            <div id="view-standings" class="content-view" style="display: none;">
+                <h2>Season Standings</h2>
+                <div class="table-container">
+                    <table class="timing-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Driver</th>
+                                <th>Team</th>
+                                <th>Points</th>
+                                <th>Total Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="standings-table-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

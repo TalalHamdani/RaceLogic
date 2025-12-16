@@ -1,0 +1,240 @@
+:root {
+    --bg-dark: #0b0c10;
+    --bg-panel: #1f2833;
+    --text-primary: #ffffff;
+    --text-secondary: #c5c6c7;
+    --accent: #66fcf1;
+    --border: #45a29e;
+
+    --team-rb: #0600ef;
+    --team-mer: #00d2be;
+    --team-fer: #dc0000;
+    --team-mcl: #ff8700;
+    --team-am: #006f62;
+    --team-alp: #0090ff;
+    --team-wil: #005aff;
+    --team-haas: #ffffff;
+    --team-rb2: #2b4562;
+    /* RB/AlphaTauri */
+    --team-kick: #52e252;
+}
+
+body {
+    margin: 0;
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.app-container {
+    display: flex;
+    height: 100%;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 250px;
+    background-color: #000000;
+    border-right: 1px solid #333;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.logo {
+    font-family: 'Chakra Petch', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 40px;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nav-section h3 {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.nav-item {
+    display: block;
+    padding: 10px 15px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: 6px;
+    margin-bottom: 5px;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.nav-item:hover,
+.nav-item.active {
+    background-color: #222;
+    color: var(--text-primary);
+}
+
+.nav-item.active {
+    border-left: 3px solid var(--accent);
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow: hidden;
+}
+
+.top-bar {
+    padding: 20px 30px;
+    background-color: #000;
+    border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.race-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.flag {
+    font-size: 32px;
+}
+
+.race-details h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    font-family: 'Chakra Petch', sans-serif;
+}
+
+.timer {
+    font-family: 'Chakra Petch', sans-serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.content-view {
+    padding: 20px 30px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Tables */
+.table-container {
+    margin-top: 20px;
+    background-color: transparent;
+}
+
+.timing-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+    /* Gap between rows */
+}
+
+.timing-table th {
+    text-align: left;
+    color: #666;
+    font-size: 12px;
+    text-transform: uppercase;
+    padding: 0 15px;
+    font-weight: 600;
+}
+
+.timing-table tr {
+    /* No border on rows directly, we style td */
+}
+
+.timing-table td {
+    background-color: #1a1a1a;
+    padding: 12px 15px;
+    font-family: 'Chakra Petch', sans-serif;
+    font-size: 16px;
+    vertical-align: middle;
+}
+
+.timing-table tr td:first-child {
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+    width: 50px;
+    text-align: center;
+}
+
+.timing-table tr td:last-child {
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+
+/* Position Badge */
+.pos-badge {
+    background-color: #333;
+    color: #fff;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    font-weight: 700;
+}
+
+.pos-1 .pos-badge {
+    background-color: #d4af37;
+    color: #000;
+}
+
+.pos-2 .pos-badge {
+    background-color: #c0c0c0;
+    color: #000;
+}
+
+.pos-3 .pos-badge {
+    background-color: #cd7f32;
+    color: #000;
+}
+
+/* Driver Team Bar */
+.team-bar {
+    width: 4px;
+    height: 20px;
+    display: inline-block;
+    margin-right: 10px;
+    border-radius: 2px;
+    vertical-align: middle;
+}
+
+/* Controls */
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+    font-family: 'Chakra Petch', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.btn-control {
+    background: #333;
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.btn-control:hover {
+    background: #444;
+}

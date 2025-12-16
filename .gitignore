@@ -1,0 +1,17 @@
+# Build Artifacts
+build/
+*.exe
+*.obj
+*.o
+*.pdb
+*.ilk
+
+# Data Outputs (Optional - Remove if you want to commit data)
+# dashboard/data.js
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
