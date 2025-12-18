@@ -2,12 +2,12 @@
 #define MAX_HEAP_H
 
 #include "Driver.h"
-#include "Vector.h"
 #include <iostream>
+#include <vector>
 
 class MaxHeap {
 private:
-  Vector<Driver *> heap;
+  std::vector<Driver *> heap;
 
   int parent(int i) { return (i - 1) / 2; }
   int leftChild(int i) { return (2 * i) + 1; }
@@ -80,7 +80,7 @@ public:
     }
   }
 
-  const Vector<Driver *> &getUnderlyingContainer() const { return heap; }
+  const std::vector<Driver *> &getUnderlyingContainer() const { return heap; }
 };
 
 #endif // MAX_HEAP_H

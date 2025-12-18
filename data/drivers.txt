@@ -1,20 +1,22 @@
 VER,Max Verstappen,Red Bull,0.95,18.5
-HAM,Lewis Hamilton,Mercedes,0.90,19.0
-NOR,Lando Norris,McLaren,0.88,18.8
-LEC,Charles Leclerc,Ferrari,0.89,19.2
-PIA,Oscar Piastri,McLaren,0.87,18.8
-RUS,George Russell,Mercedes,0.88,19.0
-SAI,Carlos Sainz,Ferrari,0.88,19.2
-ALB,Alex Albon,Williams,0.82,20.0
-SAR,Logan Sargeant,Williams,0.78,20.5
-PER,Sergio Perez,Red Bull,0.88,18.5
-ALO,Fernando Alonso,Aston Martin,0.86,19.5
-STR,Lance Stroll,Aston Martin,0.80,19.5
-GAS,Pierre Gasly,Alpine,0.81,21.0
-OCO,Esteban Ocon,Alpine,0.81,21.0
-TSU,Yuki Tsunoda,RB,0.80,19.8
-RIC,Daniel Ricciardo,RB,0.80,19.8
-BOT,Valtteri Bottas,Kick Sauber,0.79,22.0
-ZHO,Guanyu Zhou,Kick Sauber,0.78,22.0
-HUL,Nico Hulkenberg,Haas,0.79,20.5
-MAG,Kevin Magnussen,Haas,0.79,20.5
+NOR,Lando Norris,McLaren,0.94,18.5
+LEC,Charles Leclerc,Ferrari,0.94,18.5
+HAM,Lewis Hamilton,Mercedes,0.93,18.5
+RUS,George Russell,Mercedes,0.93,18.5
+OCO,Esteban Ocon,Alpine,0.93,19.8
+BEA,Oliver Bearman,Haas,0.93,21.0
+PIA,Oscar Piastri,McLaren,0.92,18.5
+SAI,Carlos Sainz,Ferrari,0.92,18.5
+DOO,Driver DOO,Unknown,0.91,21.0
+HUL,Nico Hulkenberg,Haas,0.90,21.0
+PER,Sergio Perez,Red Bull,0.90,18.5
+GAS,Pierre Gasly,Alpine,0.90,19.8
+TSU,Yuki Tsunoda,RB,0.90,19.8
+LAW,Liam Lawson,RB,0.90,19.8
+MAG,Kevin Magnussen,Haas,0.89,21.0
+ZHO,Guanyu Zhou,Kick Sauber,0.89,21.0
+COL,Franco Colapinto,Williams,0.89,21.0
+BOT,Valtteri Bottas,Kick Sauber,0.89,21.0
+ALB,Alex Albon,Williams,0.87,21.0
+ALO,Fernando Alonso,Aston Martin,0.84,19.8
+STR,Lance Stroll,Aston Martin,0.78,19.8

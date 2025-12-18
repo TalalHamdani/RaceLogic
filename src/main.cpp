@@ -1,6 +1,7 @@
 #include "SeasonManager.h"
 #include <iomanip>
 #include <iostream>
+#include <vector>
 
 int main() {
   std::cout << "Initializing RaceLogic v0.1 (Data-Driven Mode)..." << std::endl;
@@ -35,7 +36,7 @@ int main() {
   std::cout << "FINAL SEASON STANDINGS" << std::endl;
   std::cout << "###################################" << std::endl;
 
-  Vector<Driver *> standings = season.getSeasonStandings();
+  std::vector<Driver *> standings = season.getSeasonStandings();
   for (int i = 0; i < standings.size(); ++i) {
     Driver *d = standings[i];
     std::cout << (i + 1) << ". " << d->getName() << " [" << d->getTeam()

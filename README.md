@@ -1,20 +1,21 @@
-# RaceLogic v0.1 - F1 Driver Ranking System
+# RaceLogic - F1 Driver Ranking System
 
-RaceLogic is a high-performance, data-driven Formula 1 ranking system built in C++. It evaluates race dynamics, tyre degradation, pit strategies, and driver performance to calculate comprehensive driver ratings using a custom-built scoring engine.
+RaceLogic is a data-driven Formula 1 ranking system built in C++. It evaluates race dynamics, tyre degradation, pit strategies, and driver performance to calculate comprehensive driver ratings using a custom-built scoring engine.
 
 The project features a **web-based dashboard** to visualize race results and season standings in real-time.
 
 ## 🚀 Key Features
 
 ### 🛠️ Custom Data Structures (No STL)
-To demonstrate deep understanding of memory management and algorithm optimization, the core system relies entirely on custom-implemented data structures instead of the C++ Standard Template Library (STL):
-- **`Vector<T>`**: Dynamic array implementation with manual memory management.
-- **`LinkedList<T>`**: Doubly linked list for efficient insertion/deletion.
-- **`BSTMap<K, V>`**: Binary Search Tree based map for O(log n) lookups.
-- **`PriorityQueue<T>`**: Min-Heap implementation for efficient Dijkstra's algorithm execution.
+### 🛠️ Data Structures
+The core engine uses a efficient combination of built-in and custom data structures:
+- **`std::vector<T>`**: Standard dynamic array for lists and heaps (Replaced custom Vector).
+- **`LinkedList<T>`**: **Custom** Doubly linked list for efficient graph edges.
+- **`BSTMap<K, V>`**: **Custom** Binary Search Tree based map for O(log n) lookups.
+- **`PriorityQueue<T>`**: **Custom** Min-Heap wrapper around `std::vector` for Dijkstra's.
 
 ### 🏆 Ranking Engine
-- **Tyre Degradation Model**: Non-linear degradation logic based on tyre compound (Soft/Medium/Hard) and stint length.
+- **Tyre Degradation Model**: Degradation logic based on stint length.
 - **Scoring System**: Complex driver scoring based on speed efficiency, consistency, wet weather skill, and overtakes.
 - **Race Graph**: Graph-based track representation using **Dijkstra’s Algorithm** (via custom Priority Queue) to calculate ideal racing lines and sectoral times.
 
@@ -24,18 +25,34 @@ To demonstrate deep understanding of memory management and algorithm optimizatio
 - Visualizes tyre health with color-coded warning systems.
 
 ## 📂 Project Structure
-
 ```
 RaceLogic/
-├── src/                # C++ Source Files (main.cpp)
-├── include/            # Header Files (Custom DS, Logic)
-│   ├── Vector.h        # Custom Vector
-│   ├── LinkedList.h    # Custom Linked List
-│   ├── BSTMap.h        # Custom BST Map
+├── src/
+│   ├── main.cpp        # Entry point (CLI Simulation)
+│   └── App.cpp         # ImGui GUI Implementation (Experimental)
+├── include/            # Header Files
+│   ├── BSTMap.h        # Custom Binary Search Tree Map
+│   ├── Driver.h        # Driver Class & State
+│   ├── DriverRegistry.h# Driver Database
+│   ├── LinkedList.h    # Custom Doubly Linked List
+│   ├── MaxHeap.h       # Custom Max Heap
 │   ├── Queue.h         # Custom Priority Queue
-│   └── SeasonManager.h # Core Simulation Logic
-├── data/               # Simulation Data (Drivers, Race Events)
-├── dashboard/          # Web Dashboard (HTML/CSS/JS)
+│   ├── RaceGraph.h     # Dijkstra's Algorithm & Track Graph
+│   ├── ScoringEngine.h # Driver Rating Logic
+│   ├── SeasonManager.h # Core Simulation & Data Parsing
+│   └── Vector.h        # Custom Vector
+├── data/               # Simulation Data
+│   ├── drivers.txt     # Driver Database
+│   └── race_events.txt # Compressed Race Events
+├── race_data_csv/      # Data Generation Tools
+│   ├── generate_drivers.py # Driver Data Generator
+│   ├── generate_events.py  # Race Event Generator
+│   └── *.csv           # Raw Dataset
+├── dashboard/          # Web Visualization
+│   ├── index.html      # Dashboard Entry
+│   ├── style.css       # Styles
+│   ├── app.js          # Logic
+│   └── data.js         # Generated Simulation Data
 ├── build.bat           # Build Script
 └── README.md           # Documentation
 ```
@@ -58,8 +75,13 @@ RaceLogic/
 
 ## 📝 Configuration
 - **Drivers**: Edit `data/drivers.txt` to add or modify drivers.
-- **Race Events**: Edit `data/race_events.txt` to define lap-by-lap events using the `BATCH` format for compression.
+- **Race Events**: Edit `data/race_events.txt` to define lap-by-lap events.
 
-## 👨‍💻 Author
-Talal Hamdani
-Formula 1 Enthusiast & Software Engineer
+### 🧹 Data Generation
+Scale data parsing using Python scripts in `race_data_csv/`:
+- **`generate_drivers.py`**: Generates `drivers.txt` from driver summaries.
+- **`generate_events.py`**: Compiles `race_events.txt` from raw lap times and stint CSVs.
+
+## 👨‍💻 Authors
+- **Talal Hamdani**
+- **Ahmad Jawad**

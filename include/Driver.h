@@ -79,6 +79,7 @@ public:
   void resetStint(int lap) { stintStartLap = lap; }
   void incrementOvertakes() { overtakes++; }
   void setTyreDegradation(float deg) { tyreDegradation = deg; }
+  void setTyreCompound(std::string comp) { tyreCompound = comp; }
   void addSeasonPoints(int pts) { seasonPoints += pts; }
   void addSeasonTime(float time) { seasonTotalTime += time; }
 
@@ -92,6 +93,7 @@ public:
     pitStops = 0;
     overtakes = 0;
     rankingScore = 0.0f;
+    tyreCompound = "Soft";
   }
 };
 

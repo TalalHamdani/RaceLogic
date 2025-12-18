@@ -1,13 +1,13 @@
 #ifndef CUSTOM_QUEUE_H
 #define CUSTOM_QUEUE_H
 
-#include "Vector.h"
+#include <vector>
 
 // Simple Min-Priority Queue wrapper around Vector
 // To fully replace std::priority_queue needed for Dijkstra
 template <typename T> class PriorityQueue {
 private:
-  Vector<T> heap;
+  std::vector<T> heap;
 
   int parent(int i) { return (i - 1) / 2; }
   int leftChild(int i) { return (2 * i) + 1; }

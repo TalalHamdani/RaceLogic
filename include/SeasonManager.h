@@ -8,17 +8,18 @@
 #include "ScoringEngine.h"
 #include "Vector.h"
 #include <algorithm>
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <vector>
 
-
-// Note: Removed <map> and <vector> includes
 
 struct Event {
-  std::string type; // LAP, PIT, POS, OVERTAKE
-  float value;      // Time or Position
+  std::string type;   // LAP, PIT, POS, OVERTAKE
+  float value;        // Time or Position
+  std::string detail; // Extra info (e.g., Tyre Compound Name)
 };
 
 struct DriverResult {
@@ -37,7 +38,7 @@ struct RaceResult {
   int raceId;
   std::string trackName;
   std::string weather;
-  Vector<DriverResult> results; // Use Custom Vector
+  std::vector<DriverResult> results; // Use std::vector
 };
 
 class SeasonManager {
@@ -50,16 +51,21 @@ private:
   int totalRaces;
   float currentWeather;
 
-  Vector<std::string> trackNames; // Custom Vector
+  std::vector<std::string> trackNames; // Use std::vector
 
   // RaceID -> Lap -> DriverID -> List of Events
-  // BSTMap<int, BSTMap<int, BSTMap<string, Vector<Event>>>>
-  BSTMap<int, BSTMap<int, BSTMap<std::string, Vector<Event>>>> raceEvents;
+  // BSTMap<int, BSTMap<int, BSTMap<string, vector<Event>>>>
+  BSTMap<int, BSTMap<int, BSTMap<std::string, std::vector<Event>>>>
+      raceEvents; // Use std::vector
 
   // RaceID -> DriverID -> List of Pit Laps
-  BSTMap<int, BSTMap<std::string, Vector<int>>> pitStops;
+  BSTMap<int, BSTMap<std::string, std::vector<int>>>
+      pitStops; // Use std::vector
 
-  Vector<RaceResult> seasonHistory; // Custom Vector
+  // RaceID -> Weather Value (0.0 - 1.0)
+  BSTMap<int, float> raceWeathers;
+
+  std::vector<RaceResult> seasonHistory; // Use std::vector
 
 public:
   SeasonManager() {
@@ -132,11 +138,12 @@ public:
     // We need to iterate over everything. BSTMap supports forEach
     raceEvents.forEach(
         [&](int raceId,
-            BSTMap<int, BSTMap<std::string, Vector<Event>>> &lapsMap) {
+            BSTMap<int, BSTMap<std::string, std::vector<Event>>> &lapsMap) {
           lapsMap.forEach(
-              [&](int lapNum, BSTMap<std::string, Vector<Event>> &driversMap) {
+              [&](int lapNum,
+                  BSTMap<std::string, std::vector<Event>> &driversMap) {
                 driversMap.forEach(
-                    [&](std::string driverId, Vector<Event> &events) {
+                    [&](std::string driverId, std::vector<Event> &events) {
                       for (auto &ev : events) {
                         if (ev.type == "PIT") {
                           pitStops[raceId][driverId].push_back(lapNum);
@@ -163,7 +170,7 @@ public:
       // BATCH MODE
       if (line.rfind("BATCH,", 0) == 0) {
         std::string segment;
-        Vector<std::string> parts;
+        std::vector<std::string> parts;
         while (std::getline(ss, segment, ',')) {
           parts.push_back(segment);
         }
@@ -181,7 +188,7 @@ public:
             if (colonPos != std::string::npos) {
               std::string driverId = item.substr(0, colonPos);
               float time = std::stof(item.substr(colonPos + 1));
-              raceEvents[raceId][lap][driverId].push_back({"LAP", time});
+              raceEvents[raceId][lap][driverId].push_back({"LAP", time, ""});
             }
           }
         } catch (...) {
@@ -197,9 +204,21 @@ public:
           try {
             int raceId = std::stoi(raceIdStr);
             int lap = std::stoi(lapStr);
-            float val = std::stof(valStr);
 
-            raceEvents[raceId][lap][driverId].push_back({type, val});
+            float val = 0.0f;
+            std::string detail = "";
+
+            if (type == "COMPOUND") {
+              detail = valStr; // Direct string assignment
+            } else {
+              val = std::stof(valStr);
+            }
+
+            if (type == "WEATHER") {
+              raceWeathers[raceId] = val;
+            } else {
+              raceEvents[raceId][lap][driverId].push_back({type, val, detail});
+            }
           } catch (...) {
           }
         }
@@ -223,6 +242,12 @@ public:
       return;
     }
 
+    if (raceWeathers.contains(raceId)) {
+      currentWeather = raceWeathers[raceId];
+    } else {
+      currentWeather = 0.0f;
+    }
+
     // Access via reference to avoid copy
     auto &lapEvents = raceEvents[raceId][lap];
 
@@ -232,7 +257,7 @@ public:
 
       // Check if driver has events
       if (lapEvents.contains(d->getId())) {
-        Vector<Event> &events = lapEvents[d->getId()];
+        std::vector<Event> &events = lapEvents[d->getId()];
         for (const auto &ev : events) {
           if (ev.type == "LAP") {
             d->updateLapTime(ev.value);
@@ -244,6 +269,8 @@ public:
             d->setRankingScore(1000.0f - ev.value);
           } else if (ev.type == "OVERTAKE") {
             d->incrementOvertakes();
+          } else if (ev.type == "COMPOUND") {
+            d->setTyreCompound(ev.detail);
           }
         }
       } else {
@@ -258,7 +285,7 @@ public:
         // Check if pitStops has info for this race/driver
         if (pitStops.contains(raceId) &&
             pitStops[raceId].contains(d->getId())) {
-          Vector<int> &stops = pitStops[raceId][d->getId()];
+          std::vector<int> &stops = pitStops[raceId][d->getId()];
           for (const int stopLap : stops) {
             if (stopLap > lap) {
               nextPitLap = stopLap;
@@ -285,7 +312,7 @@ public:
   }
 
   void endRace() {
-    Vector<Driver *> raceResults;
+    std::vector<Driver *> raceResults;
     while (!leaderboard->isEmpty()) {
       raceResults.push_back(leaderboard->pop());
     }
@@ -302,9 +329,14 @@ public:
     currentResult.raceId = currentRaceIndex + 1;
     currentResult.trackName = trackName;
 
-    // Choose weather randomly
-    const char *weathers[] = {"Sunny", "Cloudy", "Rain", "Clear"};
-    currentResult.weather = weathers[rand() % 4];
+    // Determine Weather from Data
+    float weatherVal = 0.0f;
+    if (raceWeathers.contains(currentResult.raceId)) {
+      weatherVal = raceWeathers[currentResult.raceId];
+    }
+
+    currentResult.weather = (weatherVal > 0.1f) ? "Rainy" : "Dry";
+    std::cout << "Weather: " << currentResult.weather << std::endl;
 
     for (size_t i = 0; i < raceResults.size(); ++i) {
       Driver *d = raceResults[i];
@@ -316,7 +348,8 @@ public:
       std::cout << (i + 1) << ". " << d->getName() << " (" << d->getTeam()
                 << ") - " << pts << " pts [Score: " << d->getRankingScore()
                 << "] [Time: " << d->getRaceTotalTime()
-                << "s] [Pits: " << d->getPitStops() << "]" << std::endl;
+                << "s] [Pits: " << d->getPitStops()
+                << "] [Tyres: " << d->getTyreCompound() << "]" << std::endl;
 
       currentResult.results.push_back(
           {d->getName(), d->getTeam(), pts, d->getRaceTotalTime(),
@@ -335,8 +368,8 @@ public:
     currentRaceIndex++;
   }
 
-  Vector<Driver *> getSeasonStandings() {
-    Vector<Driver *> standings;
+  std::vector<Driver *> getSeasonStandings() {
+    std::vector<Driver *> standings;
     registry->forEach([&](Driver *d) { standings.push_back(d); });
 
     // We need to sort functionality. Vector doesn't have sort method built-in,
@@ -371,7 +404,8 @@ public:
              << "\"name\": \"" << res.name << "\", "
              << "\"team\": \"" << res.team << "\", "
              << "\"points\": " << res.points << ", "
-             << "\"time\": " << res.totalTime << ", "
+             << "\"time\": "
+             << (std::isnan(res.totalTime) ? 0.0f : res.totalTime) << ", "
              << "\"overtakes\": " << res.overtakes << ", "
              << "\"tyreDegradation\": " << res.tyreDegradation << ", "
              << "\"pits\": " << res.pitStops << "}";
@@ -397,7 +431,10 @@ public:
            << "\"name\": \"" << d->getName() << "\", "
            << "\"team\": \"" << d->getTeam() << "\", "
            << "\"points\": " << d->getSeasonPoints() << ", "
-           << "\"totalTime\": " << d->getSeasonTotalTime() << "}";
+           << "\"totalTime\": "
+           << (std::isnan(d->getSeasonTotalTime()) ? 0.0f
+                                                   : d->getSeasonTotalTime())
+           << "}";
       if (k < standings.size() - 1)
         file << ",";
       file << "\n";
