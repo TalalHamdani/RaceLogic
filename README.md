@@ -9,15 +9,16 @@ The project features a **web-based dashboard** to visualize race results and sea
 ### 🛠️ Custom Data Structures (No STL)
 ### 🛠️ Data Structures
 The core engine uses a efficient combination of built-in and custom data structures:
-- **`std::vector<T>`**: Standard dynamic array for lists and heaps (Replaced custom Vector).
-- **`LinkedList<T>`**: **Custom** Doubly linked list for efficient graph edges.
-- **`BSTMap<K, V>`**: **Custom** Binary Search Tree based map for O(log n) lookups.
+- **`HashMap<K, V>`**: **Custom** Hash Table implementation (with chaining) for O(1) driver lookups.
+- **`LinkedList<T>`**: **Custom** Doubly Linked List for adjacency lists in the graph.
+- **`MaxHeap`**: **Custom** Heap for leaderboard management (O(1) access to leader).
 - **`PriorityQueue<T>`**: **Custom** Min-Heap wrapper around `std::vector` for Dijkstra's.
+- **`std::vector`**: Used for sequential data (Races, Laps) where O(1) index access is superior to Map O(log n).
 
 ### 🏆 Ranking Engine
 - **Tyre Degradation Model**: Degradation logic based on stint length.
 - **Scoring System**: Complex driver scoring based on speed efficiency, consistency, wet weather skill, and overtakes.
-- **Race Graph**: Graph-based track representation using **Dijkstra’s Algorithm** (via custom Priority Queue) to calculate ideal racing lines and sectoral times.
+- **Race Graph**: Graph-based track representation using **Dijkstra’s Algorithm** to calculate ideal racing lines and sectoral times.
 
 ### 📊 Dashboard
 - Interactive HTML/JS Dashboard.
@@ -28,19 +29,17 @@ The core engine uses a efficient combination of built-in and custom data structu
 ```
 RaceLogic/
 ├── src/
-│   ├── main.cpp        # Entry point (CLI Simulation)
-│   └── App.cpp         # ImGui GUI Implementation (Experimental)
+│   └── main.cpp        # Entry point (CLI Simulation)
 ├── include/            # Header Files
-│   ├── BSTMap.h        # Custom Binary Search Tree Map
 │   ├── Driver.h        # Driver Class & State
 │   ├── DriverRegistry.h# Driver Database
+│   ├── HashMap.h       # Custom Hash Map (Driver Lookup)
 │   ├── LinkedList.h    # Custom Doubly Linked List
 │   ├── MaxHeap.h       # Custom Max Heap
 │   ├── Queue.h         # Custom Priority Queue
 │   ├── RaceGraph.h     # Dijkstra's Algorithm & Track Graph
 │   ├── ScoringEngine.h # Driver Rating Logic
-│   ├── SeasonManager.h # Core Simulation & Data Parsing
-│   └── Vector.h        # Custom Vector
+│   └── SeasonManager.h # Core Simulation & Data Parsing
 ├── data/               # Simulation Data
 │   ├── drivers.txt     # Driver Database
 │   └── race_events.txt # Compressed Race Events

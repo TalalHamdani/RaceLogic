@@ -1,12 +1,12 @@
 #ifndef SEASON_MANAGER_H
 #define SEASON_MANAGER_H
 
-#include "BSTMap.h"
 #include "DriverRegistry.h"
+#include "HashMap.h"
 #include "MaxHeap.h"
 #include "RaceGraph.h"
 #include "ScoringEngine.h"
-#include "Vector.h"
+
 #include <algorithm>
 #include <cmath>
 #include <fstream>
@@ -14,7 +14,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-
 
 struct Event {
   std::string type;   // LAP, PIT, POS, OVERTAKE
@@ -55,15 +54,17 @@ private:
 
   // RaceID -> Lap -> DriverID -> List of Events
   // BSTMap<int, BSTMap<int, BSTMap<string, vector<Event>>>>
-  BSTMap<int, BSTMap<int, BSTMap<std::string, std::vector<Event>>>>
-      raceEvents; // Use std::vector
+  // Optimized Data Structure:
+  // RaceID (Vector Index) -> Lap (Vector Index) -> DriverID (HashMap) -> Events
+  // Simpler and faster than triple-nested BST.
+  std::vector<std::vector<HashMap<std::string, std::vector<Event>>>> raceEvents;
 
-  // RaceID -> DriverID -> List of Pit Laps
-  BSTMap<int, BSTMap<std::string, std::vector<int>>>
+  // RaceID (Vector Index) -> DriverID (HashMap) -> List of Pit Laps
+  std::vector<HashMap<std::string, std::vector<int>>>
       pitStops; // Use std::vector
 
   // RaceID -> Weather Value (0.0 - 1.0)
-  BSTMap<int, float> raceWeathers;
+  std::vector<float> raceWeathers;
 
   std::vector<RaceResult> seasonHistory; // Use std::vector
 
@@ -134,24 +135,35 @@ public:
   }
 
   void analyzePitStops() {
+    // Clear existing pit stop data
     pitStops.clear();
-    // We need to iterate over everything. BSTMap supports forEach
-    raceEvents.forEach(
-        [&](int raceId,
-            BSTMap<int, BSTMap<std::string, std::vector<Event>>> &lapsMap) {
-          lapsMap.forEach(
-              [&](int lapNum,
-                  BSTMap<std::string, std::vector<Event>> &driversMap) {
-                driversMap.forEach(
-                    [&](std::string driverId, std::vector<Event> &events) {
-                      for (auto &ev : events) {
-                        if (ev.type == "PIT") {
-                          pitStops[raceId][driverId].push_back(lapNum);
-                        }
-                      }
-                    });
-              });
-        });
+
+    // Resize pitStops vector to match raceEvents size if necessary
+    if (raceEvents.size() > pitStops.size()) {
+      pitStops.resize(raceEvents.size());
+    }
+
+    // Iterate through raceEvents to find PIT events
+    for (size_t raceId = 0; raceId < raceEvents.size(); ++raceId) {
+      for (size_t lapNum = 0; lapNum < raceEvents[raceId].size(); ++lapNum) {
+        // Access the HashMap for the current raceId and lapNum
+        HashMap<std::string, std::vector<Event>> &driversMap =
+            raceEvents[raceId][lapNum];
+
+        // Iterate through drivers in the HashMap
+        driversMap.forEach(
+            [&](const std::string &driverId, std::vector<Event> &events) {
+              for (const auto &ev : events) {
+                if (ev.type == "PIT") {
+                  // Ensure pitStops[raceId] is valid before accessing
+                  if (raceId < pitStops.size()) {
+                    pitStops[raceId][driverId].push_back(lapNum);
+                  }
+                }
+              }
+            });
+      }
+    }
 
     std::cout << "Pit strategies analyzed." << std::endl;
   }
@@ -181,6 +193,14 @@ public:
         try {
           int raceId = std::stoi(parts[1]);
           int lap = std::stoi(parts[2]);
+
+          // Dynamically resize raceEvents vector
+          if (raceId >= (int)raceEvents.size()) {
+            raceEvents.resize(raceId + 1);
+          }
+          if (lap >= (int)raceEvents[raceId].size()) {
+            raceEvents[raceId].resize(lap + 1);
+          }
 
           for (size_t i = 3; i < parts.size(); ++i) {
             std::string item = parts[i];
@@ -215,8 +235,26 @@ public:
             }
 
             if (type == "WEATHER") {
+              if (raceId >= (int)raceWeathers.size()) {
+                raceWeathers.resize(raceId + 1);
+              }
               raceWeathers[raceId] = val;
             } else {
+              // Ensure Vector sizing
+              if (raceId >= (int)raceEvents.size()) {
+                raceEvents.resize(raceId + 1);
+              }
+              if (lap >= (int)raceEvents[raceId].size()) {
+                raceEvents[raceId].resize(lap + 1);
+              }
+
+              if (type == "PIT") {
+                if (raceId >= (int)pitStops.size()) {
+                  pitStops.resize(raceId + 1);
+                }
+                pitStops[raceId][driverId].push_back(lap);
+              }
+
               raceEvents[raceId][lap][driverId].push_back({type, val, detail});
             }
           } catch (...) {
@@ -237,25 +275,26 @@ public:
   }
 
   void processRaceLap(int raceId, int lap) {
-    // Check if we have events for this lap using contains()
-    if (!raceEvents.contains(raceId) || !raceEvents[raceId].contains(lap)) {
+    // Safety check for Vector bounds
+    if (raceId >= (int)raceEvents.size())
       return;
-    }
+    if (lap >= (int)raceEvents[raceId].size())
+      return;
 
-    if (raceWeathers.contains(raceId)) {
+    if (raceId < (int)raceWeathers.size()) {
       currentWeather = raceWeathers[raceId];
     } else {
       currentWeather = 0.0f;
     }
 
-    // Access via reference to avoid copy
+    // Access via reference
     auto &lapEvents = raceEvents[raceId][lap];
 
-    // Registry forEach still works
+    // Registry forEach
     registry->forEach([&](Driver *d) {
       bool processedLap = false;
 
-      // Check if driver has events
+      // Check if driver has events in the HashMap
       if (lapEvents.contains(d->getId())) {
         std::vector<Event> &events = lapEvents[d->getId()];
         for (const auto &ev : events) {
@@ -283,7 +322,7 @@ public:
         int nextPitLap = 60; // Default end of race
 
         // Check if pitStops has info for this race/driver
-        if (pitStops.contains(raceId) &&
+        if (raceId < (int)pitStops.size() &&
             pitStops[raceId].contains(d->getId())) {
           std::vector<int> &stops = pitStops[raceId][d->getId()];
           for (const int stopLap : stops) {
@@ -331,7 +370,7 @@ public:
 
     // Determine Weather from Data
     float weatherVal = 0.0f;
-    if (raceWeathers.contains(currentResult.raceId)) {
+    if (currentResult.raceId < (int)raceWeathers.size()) {
       weatherVal = raceWeathers[currentResult.raceId];
     }
 

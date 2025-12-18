@@ -1,11 +1,11 @@
 #ifndef RACE_GRAPH_H
 #define RACE_GRAPH_H
 
-#include "BSTMap.h"
 #include "LinkedList.h"
 #include "Queue.h"
+#include <algorithm>
 #include <limits>
-
+#include <vector>
 
 // Replaces std::pair logic
 struct PQNode {
@@ -28,10 +28,10 @@ class RaceGraph {
 private:
   int numNodes;
   // Map<NodeID, List<Edge>>
-  BSTMap<int, LinkedList<Edge>> adj;
+  std::vector<LinkedList<Edge>> adj;
 
 public:
-  RaceGraph(int nodes) : numNodes(nodes) {}
+  RaceGraph(int nodes) : numNodes(nodes) { adj.resize(numNodes); }
 
   void addEdge(int u, int v, float time, float grip) {
     adj[u].push_back({v, time, grip});
@@ -40,9 +40,7 @@ public:
   // Dijkstra's Algorithm to find shortest time (Ideal Lap)
   // Weather: 0.0 (Dry) to 1.0 (Heavy Rain)
   float calculateIdealLapTime(int startNode, int endNode, float weather) {
-    BSTMap<int, float> dist;
-    for (int i = 0; i < numNodes; ++i)
-      dist[i] = std::numeric_limits<float>::max();
+    std::vector<float> dist(numNodes, std::numeric_limits<float>::max());
 
     PriorityQueue<PQNode> pq;
 
