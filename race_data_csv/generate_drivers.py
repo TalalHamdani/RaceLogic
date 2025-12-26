@@ -29,7 +29,8 @@ DRIVER_DB = {
     'ZHO': {'name': 'Guanyu Zhou',    'team': 'Kick Sauber','tier': 3},
     'HUL': {'name': 'Nico Hulkenberg','team': 'Haas',     'tier': 3},
     'MAG': {'name': 'Kevin Magnussen','team': 'Haas',     'tier': 3},
-    'BEA': {'name': 'Oliver Bearman', 'team': 'Haas',     'tier': 3}  # Reserve
+    'BEA': {'name': 'Oliver Bearman', 'team': 'Haas',     'tier': 3}, # Reserve
+    'DOO': {'name': 'Jack Doohan',    'team': 'Alpine',   'tier': 3}  # Reserve
 }
 
 # Values for the last column (Pit/Reflex) based on Tier

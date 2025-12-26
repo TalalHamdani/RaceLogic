@@ -194,6 +194,18 @@ public:
           int raceId = std::stoi(parts[1]);
           int lap = std::stoi(parts[2]);
 
+          // Check for TRACK,NAME event in batch mode
+          // Format: BATCH,raceId,lap,TRACK:NAME:TrackName
+          if (parts.size() >= 4 && parts[3].rfind("TRACK:NAME:", 0) == 0) {
+            std::string trackNameValue =
+                parts[3].substr(11); // "TRACK:NAME:".length()
+            if (raceId >= (int)trackNames.size()) {
+              trackNames.resize(raceId + 1); // Resize to accommodate raceId
+            }
+            trackNames[raceId] = trackNameValue;
+            continue; // Processed this line, move to next
+          }
+
           // Dynamically resize raceEvents vector
           if (raceId >= (int)raceEvents.size()) {
             raceEvents.resize(raceId + 1);
@@ -228,13 +240,18 @@ public:
             float val = 0.0f;
             std::string detail = "";
 
-            if (type == "COMPOUND") {
-              detail = valStr; // Direct string assignment
+            if (type == "COMPOUND" || (driverId == "TRACK" && type == "NAME")) {
+              detail = valStr; // Treat as string
             } else {
               val = std::stof(valStr);
             }
 
-            if (type == "WEATHER") {
+            if (driverId == "TRACK" && type == "NAME") {
+              if (raceId > (int)trackNames.size()) {
+                trackNames.resize(raceId);
+              }
+              trackNames[raceId - 1] = detail; // Use string value from parsing
+            } else if (type == "WEATHER") {
               if (raceId >= (int)raceWeathers.size()) {
                 raceWeathers.resize(raceId + 1);
               }
@@ -313,8 +330,9 @@ public:
           }
         }
       } else {
-        // Simulate default lap
-        d->updateLapTime(90.0f);
+        // DNF / Missing Data Scenario
+        d->updateLapTime(200.0f); // Heavy time penalty
+        d->setRankingScore(0.0f); // Drop to bottom of leaderboard
       }
 
       // Calculate Degradation

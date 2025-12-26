@@ -82,20 +82,20 @@ const app = {
         }
     },
 
-    getTeamColorVar: function (team) {
-        const map = {
-            "Red Bull": "--team-rb",
-            "Mercedes": "--team-mer",
-            "Ferrari": "--team-fer",
-            "McLaren": "--team-mcl",
-            "Aston Martin": "--team-am",
-            "Alpine": "--team-alp",
-            "Williams": "--team-wil",
-            "Haas": "--team-haas",
-            "Kick Sauber": "--team-kick",
-            "RB": "--team-rb2"
+    getTeamColor: function (team) {
+        const colors = {
+            "Red Bull": "#3671C6",
+            "Mercedes": "#27F4D2",
+            "Ferrari": "#E80020",
+            "McLaren": "#FF8000",
+            "Aston Martin": "#22594D",
+            "Alpine": "#0093CC",
+            "Williams": "#64C4FF",
+            "Haas": "#B6BABD",
+            "Kick Sauber": "#52E252",
+            "RB": "#6692FF"
         };
-        return map[team] || "--accent";
+        return colors[team] || "#FFF";
     },
 
     formatTime: function (seconds) {
@@ -119,11 +119,9 @@ const app = {
         // Header
         this.dom.raceName.textContent = `${race.trackName} Grand Prix`;
         this.dom.currentRaceDisplay.textContent = `Round ${race.raceId}`;
-        // this.dom.raceTimer.textContent = "FINISHED";
 
         // Weather
         this.dom.raceWeather.textContent = race.weather || "Sunny";
-        this.dom.raceTemp.textContent = this.getTempForWeather(race.weather);
 
         // Table
         this.dom.raceTable.innerHTML = '';
@@ -134,28 +132,36 @@ const app = {
             const tr = document.createElement('tr');
             tr.className = `pos-${res.position}`;
 
+            // DNF Detection (Gap > 400s)
+            let isDNF = false;
+            if (index > 0 && (res.time - leaderTime > 400)) {
+                isDNF = true;
+                tr.classList.add('dnf-row'); // You'll need to add this class to CSS
+            }
+
             // Gap Calculation
             let gapStr = "";
-            if (index === 0) {
-                gapStr = this.formatTime(res.time); // Leader shows time
+            if (isDNF) {
+                gapStr = "DNF";
+            } else if (index === 0) {
+                gapStr = this.formatTime(res.time);
             } else {
                 const diff = res.time - leaderTime;
                 gapStr = `+${diff.toFixed(3)}`;
             }
 
-            const teamColor = this.getTeamColorVar(res.team);
+            const teamColor = this.getTeamColor(res.team);
 
             tr.innerHTML = `
                 <td>
                     <div class="pos-badge">${res.position}</div>
                 </td>
-                <td>
-                    <span class="team-bar" style="background-color: var(${teamColor})"></span>
+                <td style="border-left: 4px solid ${teamColor}; padding-left: 10px;">
                     ${res.name}
                     <span style="color: #666; font-size: 12px; margin-left: 5px;">${res.team.toUpperCase()}</span>
                 </td>
-                <td style="color: ${index === 0 ? '#fff' : '#c5c6c7'}">${gapStr}</td>
-                <td>${this.formatTime(res.time)}</td>
+                <td style="color: ${index === 0 ? '#fff' : (isDNF ? '#ff4d4d' : '#c5c6c7')}">${gapStr}</td>
+                <td style="color: ${isDNF ? '#666' : '#fff'}">${this.formatTime(res.time)}</td>
                 <td><span style="color: var(--accent)">${res.pits}</span></td>
                 <td>
                     <span style="color: ${res.tyreDegradation < 40 ? '#4caf50' : res.tyreDegradation < 70 ? '#ffeb3b' : '#f44336'}">

@@ -238,3 +238,19 @@ body {
 .btn-control:hover {
     background: #444;
 }
+
+/* DNF Styling */
+.dnf-row td {
+    opacity: 0.6;
+}
+
+.dnf-row .pos-badge {
+    background-color: #2a2a2a !important;
+    color: #555 !important;
+    border: 1px solid #444;
+}
+
+.dnf-row:hover td {
+    opacity: 1;
+    /* Highlight heavily on hover to see details */
+}

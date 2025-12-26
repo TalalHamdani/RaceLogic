@@ -21,7 +21,7 @@ def get_races():
         name = f.replace(SUFFIX_LAPS, '')
         races.append(name)
     
-    # Sort alphabetically to keep IDs consistent (or change logic here for calendar order)
+    # Sort alphabetically to keep IDs consistent
     races.sort()
     
     # Return a dictionary: {'Abu Dhabi': 1, 'Brazil': 2, ...}
@@ -41,9 +41,15 @@ def load_data(race_name):
         else:
             dfs[key] = pd.DataFrame()
     return dfs
-def generate_events(race_id, dfs):
+
+def generate_events(race_id, race_name, dfs):
     """Generates event lines for a specific RaceID."""
     events = []
+
+    # --- 0. Track Name (Lap 0) ---
+    # This fixes the dashboard showing wrong track names
+    name_line = f"{race_id},0,TRACK,NAME,{race_name}"
+    events.append({'lap': 0, 'sort': 0, 'line': name_line})
 
     # --- 1. Weather (Lap 0) ---
     if not dfs['summary'].empty:
@@ -64,20 +70,24 @@ def generate_events(race_id, dfs):
                 compound = str(row['Compound']).capitalize()
                 line = f"{race_id},{target_lap},{driver},COMPOUND,{compound}"
                 events.append({'lap': target_lap, 'sort': 1, 'line': line})
+                
+                # Generate PIT event for subsequent stints (Pit stop happens on previous lap)
+                if lap > 1:
+                    pit_lap = lap - 1
+                    # Assume ~20s pit time for now, or use data if available
+                    pit_line = f"{race_id},{pit_lap},{driver},PIT,0.0"
+                    events.append({'lap': pit_lap, 'sort': 1, 'line': pit_line})
 
     # --- 3. Laps: Positions and Batches ---
     if not dfs['laps'].empty:
         laps_df = dfs['laps'].sort_values(by='LapNumber')
         
-        # === FIX START: CLEAN DATA BEFORE PROCESSING ===
-        # Force LapTimeSeconds to be numbers. If it's junk, turn it into NaN
+        # Clean Data
         laps_df['LapTimeSeconds'] = pd.to_numeric(laps_df['LapTimeSeconds'], errors='coerce')
-        # Remove rows where Time is NaN (this prevents the total from becoming nan)
         laps_df = laps_df.dropna(subset=['LapTimeSeconds'])
-        # === FIX END ===
 
         driver_totals = {}
-        
+        prev_positions = {} # Driver -> Rank
         grouped = laps_df.groupby('LapNumber')
         
         for lap_num, group in grouped:
@@ -105,6 +115,18 @@ def generate_events(race_id, dfs):
                 # Format total time to 3 decimal places to avoid messy floats
                 line = f"{race_id},{lap},{d['driver']},POS,{rank}"
                 events.append({'lap': lap, 'sort': 2, 'line': line})
+                
+                # Check for Overtakes
+                if lap > 1:
+                    prev_rank = prev_positions.get(d['driver'])
+                    if prev_rank and rank < prev_rank:
+                        # Gained position (e.g. P3 -> P2)
+                        overtake_line = f"{race_id},{lap},{d['driver']},OVERTAKE,1"
+                        events.append({'lap': lap, 'sort': 2, 'line': overtake_line})
+            
+            # Update previous positions for next lap
+            current_positions = {d['driver']: i+1 for i, d in enumerate(lap_data)}
+            prev_positions = current_positions
             
             # B) BATCH row
             batch_items = [f"{d['driver']}:{d['lap_time']}" for d in lap_data]
@@ -115,6 +137,7 @@ def generate_events(race_id, dfs):
 
     events.sort(key=lambda x: (x['lap'], x['sort']))
     return [e['line'] for e in events]
+
 # ==========================================
 # MAIN EXECUTION
 # ==========================================
@@ -136,7 +159,7 @@ def main():
         print(f"Processing RaceID {rid} ({name})...")
         
         dfs = load_data(name)
-        lines = generate_events(rid, dfs)
+        lines = generate_events(rid, name, dfs)
         all_lines.extend(lines)
 
     # Write final file
