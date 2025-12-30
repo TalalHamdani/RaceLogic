@@ -14,11 +14,12 @@ SUFFIX_SUMMARY = '_driver_summary.csv'
 
 def get_races():
     """Finds all unique race names and assigns them a RaceID."""
-    files = glob.glob(f"*{SUFFIX_LAPS}")
+    files = glob.glob(f"race_data_csv/*{SUFFIX_LAPS}")
     races = []
     for f in files:
-        # Extract "Las Vegas" from "Las Vegas_lap_times.csv"
-        name = f.replace(SUFFIX_LAPS, '')
+        # Extract "Las Vegas" from "race_data_csv\\Las Vegas_lap_times.csv" or forward slash
+        basename = os.path.basename(f)
+        name = basename.replace(SUFFIX_LAPS, '')
         races.append(name)
     
     # Sort alphabetically to keep IDs consistent
@@ -30,9 +31,9 @@ def get_races():
 def load_data(race_name):
     """Loads the 3 CSVs for a specific race."""
     files = {
-        'laps': f"{race_name}{SUFFIX_LAPS}",
-        'stints': f"{race_name}{SUFFIX_STINTS}",
-        'summary': f"{race_name}{SUFFIX_SUMMARY}"
+        'laps': f"race_data_csv/{race_name}{SUFFIX_LAPS}",
+        'stints': f"race_data_csv/{race_name}{SUFFIX_STINTS}",
+        'summary': f"race_data_csv/{race_name}{SUFFIX_SUMMARY}"
     }
     dfs = {}
     for key, path in files.items():
@@ -68,6 +69,7 @@ def generate_events(race_id, race_name, dfs):
                 target_lap = 0 if lap == 1 else lap
                 driver = row['Driver']
                 compound = str(row['Compound']).capitalize()
+                print(f"DEBUG: Race {race_id} Stint Driver={driver} Lap={lap}")
                 line = f"{race_id},{target_lap},{driver},COMPOUND,{compound}"
                 events.append({'lap': target_lap, 'sort': 1, 'line': line})
                 

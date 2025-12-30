@@ -1,0 +1,5 @@
+Abu Dhabi,85.637
+Brazil,70.540
+Las Vegas,93.365
+Mexico,77.774
+Qatar,82.384

@@ -4,7 +4,7 @@
 #include "DriverRegistry.h"
 #include "HashMap.h"
 #include "MaxHeap.h"
-#include "RaceGraph.h"
+// #include "RaceGraph.h" // Removed - using static lookup
 #include "ScoringEngine.h"
 
 #include <algorithm>
@@ -31,6 +31,7 @@ struct DriverResult {
   int tyreDegradation;
   float score;
   int position;
+  std::string status; // "Finished", "DNF", "+1 Lap", etc.
 };
 
 struct RaceResult {
@@ -44,7 +45,7 @@ class SeasonManager {
 private:
   DriverRegistry *registry;
   MaxHeap *leaderboard;
-  RaceGraph *currentTrack;
+  // RaceGraph *currentTrack; // Removed
 
   int currentRaceIndex;
   int totalRaces;
@@ -67,12 +68,93 @@ private:
   std::vector<float> raceWeathers;
 
   std::vector<RaceResult> seasonHistory; // Use std::vector
+  HashMap<std::string, float> idealTimes;
 
 public:
+  // Helper for Ideal Lap Time
+  void loadIdealLapTimes(const std::string &filename) {
+    std::ifstream file(filename);
+    if (!file.is_open())
+      return;
+    std::string line;
+    while (std::getline(file, line)) {
+      std::stringstream ss(line);
+      std::string track, timeStr;
+      if (std::getline(ss, track, ',') && std::getline(ss, timeStr, ',')) {
+        try {
+          idealTimes.put(track, std::stof(timeStr));
+        } catch (...) {
+        }
+      }
+    }
+  }
+
+  float getIdealLapTime(const std::string &track, float weatherVal) {
+    float baseTime = 90.0f; // Default fallback
+
+    // Find closest match in the map (e.g., "Abu Dhabi" matches "Yas Marina")
+    // For now, simpler exact match or substring check if we iterate keys.
+    // Since our map structure doesn't support iteration easily without forEach,
+    // and keys are simple strings, let's try direct lookup first, then
+    // fallback.
+
+    // We can't easily do substring search on keys in HashMap without exposing
+    // internal iterator. However, the keys in file are "Abu Dhabi", "Brazil",
+    // etc. The track passed in comes from `trackNames` vector which matches
+    // file keys (hopefully).
+
+    // Hardcoded check for known keys to map input string to key if necessary,
+    // OR just rely on consistent naming.
+    // Let's rely on consistent naming and simple "contains".
+
+    // Check known keys based on substring
+    std::string key = "";
+    if (track.find("Abu Dhabi") != std::string::npos)
+      key = "Abu Dhabi";
+    else if (track.find("Brazil") != std::string::npos)
+      key = "Brazil";
+    else if (track.find("Las Vegas") != std::string::npos)
+      key = "Las Vegas";
+    else if (track.find("Mexico") != std::string::npos)
+      key = "Mexico";
+    else if (track.find("Qatar") != std::string::npos)
+      key = "Qatar";
+
+    if (key != "" && idealTimes.contains(key)) {
+      baseTime = idealTimes[key];
+    }
+
+    if (weatherVal > 0.1f) {
+      return baseTime * 1.15f; // +15% for wet
+    }
+    return baseTime;
+  }
+
+  // Get Total Laps for a specific race
+  int getRaceLapCount(int raceId) {
+    // 0-indexed internally, but user passes 1-indexed ID
+    if (raceId < 1 || raceId > (int)trackNames.size())
+      return 60;
+
+    // Map ID 1..5 to the known laps for those specific 5 files.
+    if (raceId == 1)
+      return 58; // Abu Dhabi
+    if (raceId == 2)
+      return 71; // Brazil
+    if (raceId == 3)
+      return 50; // Las Vegas
+    if (raceId == 4)
+      return 71; // Mexico
+    if (raceId == 5)
+      return 57; // Qatar
+
+    return 60;
+  }
+
   SeasonManager() {
     registry = new DriverRegistry();
     leaderboard = new MaxHeap();
-    currentTrack = new RaceGraph(10);
+    // currentTrack = new RaceGraph(10); // Removed
     currentRaceIndex = 0;
     totalRaces = 20;
     currentWeather = 0.0f;
@@ -88,15 +170,17 @@ public:
     trackNames.push_back("Canada");
     trackNames.push_back("Spain");
 
+    /* Removed Graph Init
     for (int i = 0; i < 10; i++) {
-      currentTrack->addEdge(i, (i + 1) % 10, 10.0f, 0.5f);
+        currentTrack->addEdge(i, (i + 1) % 10, 10.0f, 0.5f);
     }
+    */
   }
 
   ~SeasonManager() {
     delete registry;
     delete leaderboard;
-    delete currentTrack;
+    // delete currentTrack;
   }
 
   void loadDriversFromFile(const std::string &filename) {
@@ -291,6 +375,21 @@ public:
     leaderboard->push(d);
   }
 
+  void startRace(int raceId) {
+    if (raceId < (int)raceEvents.size() && raceEvents[raceId].size() > 0) {
+      auto &gridEvents = raceEvents[raceId][0]; // Lap 0
+      gridEvents.forEach(
+          [&](const std::string &driverId, std::vector<Event> &events) {
+            Driver *d = registry->getDriver(driverId);
+            if (d) {
+              d->markParticipated();
+              // std::cout << "DEBUG: Initialized " << driverId << " from Grid."
+              // << std::endl;
+            }
+          });
+    }
+  }
+
   void processRaceLap(int raceId, int lap) {
     // Safety check for Vector bounds
     if (raceId >= (int)raceEvents.size())
@@ -310,7 +409,6 @@ public:
     // Registry forEach
     registry->forEach([&](Driver *d) {
       bool processedLap = false;
-
       // Check if driver has events in the HashMap
       if (lapEvents.contains(d->getId())) {
         std::vector<Event> &events = lapEvents[d->getId()];
@@ -324,15 +422,30 @@ public:
           } else if (ev.type == "POS") {
             d->setRankingScore(1000.0f - ev.value);
           } else if (ev.type == "OVERTAKE") {
-            d->incrementOvertakes();
+            d->recordOvertake();
           } else if (ev.type == "COMPOUND") {
             d->setTyreCompound(ev.detail);
           }
+          d->markParticipated(); // Any event = Participation
         }
+      }
+
+      if (lapEvents.contains(d->getId())) {
+        d->resetMissedLaps(); // Driver is active
       } else {
-        // DNF / Missing Data Scenario
-        d->updateLapTime(200.0f); // Heavy time penalty
-        d->setRankingScore(0.0f); // Drop to bottom of leaderboard
+        // Missing Data Scenario
+        // ONLY apply penalties if they have ALREADY participated in this race
+        if (d->didParticipate()) {
+          d->incrementMissedLaps();
+          d->updateLapTime(120.0f); // Reduced penalty (Lapped pace)
+
+          // Check if truly DNF (Missed > 3 consecutive laps)
+          if (d->getConsecutiveMissedLaps() > 3) {
+            d->setRankingScore(0.0f); // Confirm DNF
+          }
+        }
+        // If they haven't participated yet, do nothing (they aren't in this
+        // race)
       }
 
       // Calculate Degradation
@@ -371,8 +484,25 @@ public:
   void endRace() {
     std::vector<Driver *> raceResults;
     while (!leaderboard->isEmpty()) {
-      raceResults.push_back(leaderboard->pop());
+      Driver *d = leaderboard->pop();
+      // Only include drivers who actually participated (had events)
+      if (d->didParticipate()) {
+        raceResults.push_back(d);
+      } else {
+        // If they didn't participate, just reset state (safety)
+        d->resetRaceState();
+      }
     }
+
+    // New Safety Reset for ALL drivers in registry
+    // This ensures that even drivers NOT in the leaderboard (dropped) are
+    // reset.
+    registry->forEach([&](Driver *d) {
+      if (!d->didParticipate()) {
+        d->resetRaceState();
+        d->forceUnparticipate();
+      }
+    });
 
     int points[] = {25, 18, 15, 12, 10, 8, 6, 4, 2, 1};
 
@@ -408,12 +538,16 @@ public:
                 << "s] [Pits: " << d->getPitStops()
                 << "] [Tyres: " << d->getTyreCompound() << "]" << std::endl;
 
+      std::string status =
+          (d->getConsecutiveMissedLaps() > 3) ? "DNF" : "Finished";
+
       currentResult.results.push_back(
           {d->getName(), d->getTeam(), pts, d->getRaceTotalTime(),
            d->getPitStops(), d->getOvertakes(), (int)d->getTyreDegradation(),
-           d->getRankingScore(), (int)(i + 1)});
+           d->getRankingScore(), (int)(i + 1), status});
 
       d->resetRaceState();
+      d->forceUnparticipate();
     }
 
     seasonHistory.push_back(currentResult);
@@ -465,7 +599,8 @@ public:
              << (std::isnan(res.totalTime) ? 0.0f : res.totalTime) << ", "
              << "\"overtakes\": " << res.overtakes << ", "
              << "\"tyreDegradation\": " << res.tyreDegradation << ", "
-             << "\"pits\": " << res.pitStops << "}";
+             << "\"pits\": " << res.pitStops << ", "
+             << "\"status\": \"" << res.status << "\"}";
         if (j < race.results.size() - 1)
           file << ",";
         file << "\n";

@@ -76,7 +76,7 @@ const app = {
         if (viewName === 'standings') {
             this.renderStandings();
             this.dom.raceName.textContent = "Season Standings";
-            this.dom.raceTimer.textContent = "COMPLETE";
+            if (this.dom.raceTimer) this.dom.raceTimer.textContent = "COMPLETE";
         } else {
             this.renderDashboard();
         }
@@ -99,9 +99,19 @@ const app = {
     },
 
     formatTime: function (seconds) {
-        const mins = Math.floor(seconds / 60);
-        const secs = (seconds % 60).toFixed(3);
-        return `${mins}:${secs.padStart(6, '0')}`;
+        if (typeof seconds !== 'number' || isNaN(seconds)) return "0:00.000";
+
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = (seconds % 60).toFixed(3);
+
+        const mStr = h > 0 ? m.toString().padStart(2, '0') : m.toString();
+        const sStr = s.padStart(6, '0');
+
+        if (h > 0) {
+            return `${h}:${mStr}:${sStr}`;
+        }
+        return `${mStr}:${sStr}`;
     },
 
     getTempForWeather: function (weather) {
@@ -132,11 +142,10 @@ const app = {
             const tr = document.createElement('tr');
             tr.className = `pos-${res.position}`;
 
-            // DNF Detection (Gap > 400s)
-            let isDNF = false;
-            if (index > 0 && (res.time - leaderTime > 400)) {
-                isDNF = true;
-                tr.classList.add('dnf-row'); // You'll need to add this class to CSS
+            // DNF Detection (Using Backend Status)
+            let isDNF = (res.status === "DNF");
+            if (isDNF) {
+                tr.classList.add('dnf-row');
             }
 
             // Gap Calculation
@@ -180,12 +189,12 @@ const app = {
 
         this.data.standings.forEach(driver => {
             const tr = document.createElement('tr');
-            const teamColor = this.getTeamColorVar(driver.team);
+            const teamColor = this.getTeamColor(driver.team); // Fixed function name
 
             tr.innerHTML = `
                 <td><div class="pos-badge" style="background: transparent; border: 1px solid #333">${driver.rank}</div></td>
                 <td>
-                     <span class="team-bar" style="background-color: var(${teamColor})"></span>
+                     <span class="team-bar" style="background-color: ${teamColor}"></span>
                      ${driver.name}
                 </td>
                 <td>${driver.team}</td>

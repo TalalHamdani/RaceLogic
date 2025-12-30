@@ -10,6 +10,7 @@ int main() {
 
   // Register Drivers from file
   season.loadDriversFromFile("data/drivers.txt");
+  season.loadIdealLapTimes("data/ideal_lap_times.txt");
 
   // Load Race Events
   season.loadRaceEvents("data/race_events.txt");
@@ -22,8 +23,15 @@ int main() {
     std::cout << "STARTING RACE " << race << std::endl;
     std::cout << "===================================" << std::endl;
 
-    // Simulate 60 Laps per race
-    for (int lap = 1; lap <= 60; ++lap) {
+    // Dynamic Lap Count
+    int totalLaps = season.getRaceLapCount(race);
+    std::cout << "Simulating " << totalLaps << " Laps..." << std::endl;
+
+    // Process Grid/Tyre Events (Lap 0) - Critical for Participation Check
+    season.startRace(race);
+    season.processRaceLap(race, 0); // Still process for Tyre compound init
+
+    for (int lap = 1; lap <= totalLaps; ++lap) {
       season.processRaceLap(race, lap);
     }
 

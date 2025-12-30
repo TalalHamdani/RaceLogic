@@ -28,6 +28,10 @@ private:
   std::string tyreCompound;
   float rankingScore;
 
+  // Track activity to distinguish DNF vs Lapped
+  int consecutiveMissedLaps;
+  bool hasParticipated; // Track if driver has any events in current race
+
   // Season State
   int seasonPoints;
   float seasonTotalTime;
@@ -39,8 +43,9 @@ public:
         wetWeatherSkill(0.5f), basePitTime(_pitTime), currentLapTime(0.0f),
         lastLapTime(0.0f), raceTotalTime(0.0f), tyreAge(0),
         tyreDegradation(0.0f), stintStartLap(0), pitStops(0), overtakes(0),
-        tyreCompound("Soft"), rankingScore(0.0f), seasonPoints(0),
-        seasonTotalTime(0.0f) {}
+        tyreCompound("Soft"), rankingScore(0.0f), consecutiveMissedLaps(0),
+        hasParticipated(false), // Initialize hasParticipated
+        seasonPoints(0), seasonTotalTime(0.0f) {}
 
   // Getters
   std::string getId() const { return id; }
@@ -60,6 +65,10 @@ public:
   float getWetWeatherSkill() const { return wetWeatherSkill; }
   std::string getTyreCompound() const { return tyreCompound; }
   float getConsistency() const { return consistency; }
+  int getConsecutiveMissedLaps() const { return consecutiveMissedLaps; }
+  bool didParticipate() const { return hasParticipated; }
+  void markParticipated() { hasParticipated = true; }
+  void forceUnparticipate() { hasParticipated = false; } // Force reset
 
   // Setters / Mutators
   void setRankingScore(float score) { rankingScore = score; }
@@ -68,6 +77,7 @@ public:
     currentLapTime = time;
     raceTotalTime += time;
     tyreAge++;
+    hasParticipated = true;
   }
   void addPitTime(float time) {
     currentLapTime += time;
@@ -75,13 +85,20 @@ public:
     pitStops++;
     tyreAge = 0;
     tyreDegradation = 0.0f;
+    hasParticipated = true;
   }
   void resetStint(int lap) { stintStartLap = lap; }
-  void incrementOvertakes() { overtakes++; }
+  void recordOvertake() {
+    overtakes++;
+    hasParticipated = true;
+  }
   void setTyreDegradation(float deg) { tyreDegradation = deg; }
   void setTyreCompound(std::string comp) { tyreCompound = comp; }
   void addSeasonPoints(int pts) { seasonPoints += pts; }
   void addSeasonTime(float time) { seasonTotalTime += time; }
+
+  void incrementMissedLaps() { consecutiveMissedLaps++; }
+  void resetMissedLaps() { consecutiveMissedLaps = 0; }
 
   void resetRaceState() {
     currentLapTime = 0.0f;
@@ -94,6 +111,7 @@ public:
     overtakes = 0;
     rankingScore = 0.0f;
     tyreCompound = "Soft";
+    consecutiveMissedLaps = 0;
   }
 };
 
