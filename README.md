@@ -11,7 +11,7 @@ The engine is architected to optimize for specific operations:
 
 *   **`HashMap<K, V>`**: **Custom** Hash Table implementation (with chaining) for **O(1) Driver Lookups**. Essential for processing high-frequency lap events.
 *   **`MaxHeap`**: **Custom** Binary Heap for the **Live Leaderboard**. Allows O(log N) re-ranking and O(1) peek at the race leader.
-*   **`LinkedList<T>`**: **Custom** Doubly Linked List for specific sequence management.
+
 *   **`std::vector`**: Used for linear data storage (Event Streams, History) where contiguous memory cache efficiency outweighs the need for complex localized inserts.
 
 ### 🏆 Scoring Engine
