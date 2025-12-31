@@ -4,7 +4,7 @@
 #include "DriverRegistry.h"
 #include "HashMap.h"
 #include "MaxHeap.h"
-// #include "RaceGraph.h" // Removed - using static lookup
+
 #include "ScoringEngine.h"
 
 #include <algorithm>
@@ -45,7 +45,6 @@ class SeasonManager {
 private:
   DriverRegistry *registry;
   MaxHeap *leaderboard;
-  // RaceGraph *currentTrack; // Removed
 
   int currentRaceIndex;
   int totalRaces;
@@ -154,7 +153,7 @@ public:
   SeasonManager() {
     registry = new DriverRegistry();
     leaderboard = new MaxHeap();
-    // currentTrack = new RaceGraph(10); // Removed
+
     currentRaceIndex = 0;
     totalRaces = 20;
     currentWeather = 0.0f;
@@ -169,18 +168,11 @@ public:
     trackNames.push_back("Monaco");
     trackNames.push_back("Canada");
     trackNames.push_back("Spain");
-
-    /* Removed Graph Init
-    for (int i = 0; i < 10; i++) {
-        currentTrack->addEdge(i, (i + 1) % 10, 10.0f, 0.5f);
-    }
-    */
   }
 
   ~SeasonManager() {
     delete registry;
     delete leaderboard;
-    // delete currentTrack;
   }
 
   void loadDriversFromFile(const std::string &filename) {
