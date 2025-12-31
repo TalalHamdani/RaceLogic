@@ -450,7 +450,7 @@ public:
 
       // Calculate Degradation
       if (processedLap) {
-        int nextPitLap = 60; // Default end of race
+        int nextPitLap = getRaceLapCount(raceId); // Dynamic end of race
 
         // Check if pitStops has info for this race/driver
         if (raceId < (int)pitStops.size() &&
